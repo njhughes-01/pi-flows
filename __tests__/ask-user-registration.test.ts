@@ -142,9 +142,13 @@ describe("registerAskUserTool — registration timing", () => {
     expect(pi.registryReads()).toBe(0);
     expect(pi.registeredCalls).toHaveLength(0);
 
-    // The callback itself is not async — it decides synchronously.
+    // The callback itself is not async — it decides synchronously: its immediate
+    // return value is undefined (an async callback would return a Promise), and the
+    // registration has already happened by the time it returns.
     pi.bind();
-    expect(await sessionStart[0]({})).toBeUndefined();
+    const returned = sessionStart[0]({});
+    expect(returned).toBeUndefined();
+    expect(pi.registeredCalls).toHaveLength(1);
   });
 
   it("F2: standalone startup registers exactly one fallback ask_user", async () => {
