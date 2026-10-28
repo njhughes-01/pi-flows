@@ -5,6 +5,12 @@ All notable changes to pi-flows will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Flows no longer crashes startup when another extension already provides `ask_user`** (`ask-user` tool). pi-flows registered `ask_user` at extension load, so with an extension that also registers it (e.g. pi-durable-subagents) pi aborted with `Tool "ask_user" conflicts with ...`. `registerAskUserTool` now registers only at `session_start`, and only if no other extension already owns the name in the configured tools (`pi.getAllTools()`). The existing owner is kept and pi-flows adds nothing; standalone, pi-flows still provides the same tool. Tool activation is untouched and name-based restrictions are unchanged.
+
 ## [v0.8.0] - 2026-10-08
 
 ### Changed

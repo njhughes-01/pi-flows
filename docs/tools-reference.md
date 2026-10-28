@@ -8,7 +8,7 @@ pi-flows registers a set of tools that are exposed to agents running inside flow
 
 | Tool | Context | Registered by |
 |------|---------|--------------|
-| `ask_user` | Main session | `registerAskUserTool` |
+| `ask_user` | Main session | `registerAskUserTool` (session_start fallback; skipped when another extension owns `ask_user`) |
 | `subagent` | Main session | `registerSubagentTool` |
 | `finish` | Subagent sessions | Guard extension (per-session) |
 | `flow_agents` | Main session (inactive by default) | `registerFlowAgentsTool` |
@@ -29,6 +29,8 @@ External packages can add tools to subagent sessions via `flow:register-tool`. S
 ### `ask_user`
 
 Ask the user a structured question from within an agent. Supports free-text input, single-select, and yes/no confirm.
+
+**Registration:** pi-flows registers `ask_user` conditionally at `session_start`, not at extension load. If the configured tool registry (`pi.getAllTools()`, not just active tools) already has an `ask_user` — e.g. from pi-durable-subagents — pi-flows registers nothing and that extension keeps ownership. Standalone, pi-flows provides the same tool with the same schema and UI. pi-flows never activates or deactivates tools; name-based restrictions (allowAskUser, tool whitelists, blocked in autonomous subagents) are unchanged.
 
 **Available in:** Main session, all subagent sessions.
 
@@ -294,5 +296,7 @@ Submit the agent's final structured result. **Every agent must call `finish` as 
 | `finish` | — | ✓ | ✓ |
 | `read/write/edit/grep/…` | ✓ (always) | declared in frontmatter | declared in frontmatter |
 | Custom (via `flow:register-tool`) | — | ✓ | ✓ |
+
+> Note: when another extension owns `ask_user` (registered before pi-flows' `session_start` fallback runs), that owner's tool is the one available.
 
 Standard file-system tools (`read`, `write`, `edit`, `grep`, `find`, `ls`, `bash`) are granted to agents based on the `tools:` field in their `.md` frontmatter. The guard extension enforces that agents only call tools they declared.
